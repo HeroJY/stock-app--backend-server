@@ -6,7 +6,6 @@ USE `stock_premium`;
 -- 1. 股票基础信息表
 CREATE TABLE `stock_info` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-  `stock_code` varchar(20) NOT NULL COMMENT '股票代码',
   `stock_name` varchar(100) NOT NULL COMMENT '股票名称',
   `market_type` varchar(10) NOT NULL COMMENT '市场类型：A股/H股',
   `a_stock_code` varchar(20) DEFAULT NULL COMMENT 'A股代码',
@@ -18,7 +17,7 @@ CREATE TABLE `stock_info` (
   `updated_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `deleted` tinyint DEFAULT '0' COMMENT '逻辑删除：0-未删除，1-已删除',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_stock_code_market` (`stock_code`, `market_type`),
+  UNIQUE KEY `uk_a_h_stock_codes` (`a_stock_code`, `h_stock_code`),
   KEY `idx_a_stock_code` (`a_stock_code`),
   KEY `idx_h_stock_code` (`h_stock_code`),
   KEY `idx_status` (`status`)
@@ -113,14 +112,7 @@ CREATE TABLE `system_config` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统配置表';
 
 -- 插入初始数据
--- 插入一些测试股票数据
-INSERT INTO `stock_info` (`stock_code`, `stock_name`, `market_type`, `a_stock_code`, `h_stock_code`, `exchange`, `industry`, `status`) VALUES
-('000001', '平安银行', 'A', '000001', '02318', 'SZ', '银行', 1),
-('000002', '万科A', 'A', '000002', '02202', 'SZ', '房地产', 1),
-('600036', '招商银行', 'A', '600036', '03968', 'SH', '银行', 1),
-('02318', '平安银行', 'H', '000001', '02318', 'HK', '银行', 1),
-('02202', '万科企业', 'H', '000002', '02202', 'HK', '房地产', 1),
-('03968', '招商银行', 'H', '600036', '03968', 'HK', '银行', 1);
+-- stock_info表数据已清理，无初始数据
 
 -- 插入系统配置
 INSERT INTO `system_config` (`config_key`, `config_value`, `config_desc`, `config_type`) VALUES

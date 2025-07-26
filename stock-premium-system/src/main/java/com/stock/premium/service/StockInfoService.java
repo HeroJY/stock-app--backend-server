@@ -19,17 +19,12 @@ public interface StockInfoService extends IService<StockInfo> {
     List<StockInfo> getActiveStocks();
 
     /**
-     * 根据A股代码查询对应的H股信息
-     */
-    StockInfo getHStockByACode(String aStockCode);
-
-    /**
-     * 查询所有A+H股票对
-     */
-    List<String> getAHStockPairs();
-
-    /**
      * 根据股票代码查询股票信息
      */
     StockInfo getByStockCode(String stockCode);
+    
+    /**
+     * 根据股票名称搜索股票信息
+     */
+    List<StockInfo> searchStockByName(String stockName);
 }

@@ -24,12 +24,6 @@ public class StockInfo {
     private Long id;
 
     /**
-     * 股票代码
-     */
-    @TableField("stock_code")
-    private String stockCode;
-
-    /**
      * 股票名称
      */
     @TableField("stock_name")

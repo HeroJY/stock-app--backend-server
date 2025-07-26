@@ -2,7 +2,6 @@ package com.stock.premium.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
-import cn.hutool.json.JSONUtil;
 import com.stock.premium.entity.StockPriceRecord;
 import com.stock.premium.service.TencentFinanceService;
 import lombok.extern.slf4j.Slf4j;
@@ -211,7 +210,7 @@ public class TencentFinanceServiceImpl implements TencentFinanceService {
             if (record.getPreClosePrice().compareTo(BigDecimal.ZERO) > 0) {
                 BigDecimal changeRate = record.getCurrentPrice()
                     .subtract(record.getPreClosePrice())
-                    .divide(record.getPreClosePrice(), 4, BigDecimal.ROUND_HALF_UP)
+                    .divide(record.getPreClosePrice(), 4, java.math.RoundingMode.HALF_UP)
                     .multiply(new BigDecimal("100"));
                 record.setChangeRate(changeRate);
             }

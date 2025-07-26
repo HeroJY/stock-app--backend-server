@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -65,19 +64,6 @@ public class TestController {
         } catch (Exception e) {
             log.error("数据库连接测试失败", e);
             return Result.error("数据库连接失败: " + e.getMessage());
-        }
-    }
-
-    @ApiOperation("查询A+H股票对")
-    @GetMapping("/ah-pairs")
-    public Result<List<String>> getAHPairs() {
-        try {
-            List<String> pairs = stockInfoService.getAHStockPairs();
-            log.info("查询到{}个A+H股票对", pairs.size());
-            return Result.success("查询成功", pairs);
-        } catch (Exception e) {
-            log.error("查询A+H股票对失败", e);
-            return Result.error("查询失败: " + e.getMessage());
         }
     }
 

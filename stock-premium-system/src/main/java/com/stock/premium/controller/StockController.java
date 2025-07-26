@@ -39,18 +39,6 @@ public class StockController {
         }
     }
 
-    @ApiOperation("获取所有A+H股票对")
-    @GetMapping("/ah-pairs")
-    public Result<List<String>> getAHStockPairs() {
-        try {
-            List<String> pairs = stockInfoService.getAHStockPairs();
-            return Result.success("查询成功", pairs);
-        } catch (Exception e) {
-            log.error("查询A+H股票对失败", e);
-            return Result.error("查询失败: " + e.getMessage());
-        }
-    }
-
     @ApiOperation("根据股票代码查询股票信息")
     @GetMapping("/{stockCode}")
     public Result<StockInfo> getStockInfo(
@@ -68,20 +56,20 @@ public class StockController {
         }
     }
 
-    @ApiOperation("根据A股代码查询对应的H股信息")
-    @GetMapping("/h-stock/{aStockCode}")
-    public Result<StockInfo> getHStockByACode(
-            @ApiParam("A股代码") @PathVariable String aStockCode) {
+    /**
+     * 根据股票名称搜索股票信息
+     */
+    @ApiOperation("根据股票名称搜索股票信息")
+    @GetMapping("/search")
+    public Result<List<StockInfo>> searchStockByName(
+            @ApiParam("股票名称") @RequestParam String stockName) {
         try {
-            StockInfo hStock = stockInfoService.getHStockByACode(aStockCode);
-            if (hStock != null) {
-                return Result.success("查询成功", hStock);
-            } else {
-                return Result.notFound("未找到对应的H股信息");
-            }
+            List<StockInfo> stocks = stockInfoService.searchStockByName(stockName);
+            return Result.success("搜索成功", stocks);
         } catch (Exception e) {
-            log.error("查询H股信息失败", e);
-            return Result.error("查询失败: " + e.getMessage());
+            log.error("搜索股票失败: {}", stockName, e);
+            return Result.error("搜索失败: " + e.getMessage());
         }
     }
+
 }

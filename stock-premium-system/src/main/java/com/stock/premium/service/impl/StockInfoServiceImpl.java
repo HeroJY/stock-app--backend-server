@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 股票基础信息服务实现类
@@ -24,41 +23,41 @@ public class StockInfoServiceImpl extends ServiceImpl<StockInfoMapper, StockInfo
     @Override
     public List<StockInfo> getActiveStocks() {
         QueryWrapper<StockInfo> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("status", 1); // 启用状态
-        queryWrapper.orderByAsc("stock_code");
+        queryWrapper.eq("status", 1)
+                   .eq("deleted", 0)
+                   .orderByAsc("a_stock_code");
         return list(queryWrapper);
-    }
-
-    @Override
-    public StockInfo getHStockByACode(String aStockCode) {
-        // 根据A股代码查询对应的H股信息
-        QueryWrapper<StockInfo> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("a_stock_code", aStockCode)
-                   .eq("market_type", "H")
-                   .eq("status", 1);
-        return getOne(queryWrapper);
-    }
-
-    @Override
-    public List<String> getAHStockPairs() {
-        // 查询所有有A+H股票对的股票代码
-        QueryWrapper<StockInfo> queryWrapper = new QueryWrapper<>();
-        queryWrapper.isNotNull("a_stock_code")
-                   .isNotNull("h_stock_code")
-                   .eq("status", 1);
-        
-        List<StockInfo> stocks = list(queryWrapper);
-        return stocks.stream()
-                    .map(StockInfo::getAStockCode)
-                    .distinct()
-                    .collect(Collectors.toList());
     }
 
     @Override
     public StockInfo getByStockCode(String stockCode) {
         QueryWrapper<StockInfo> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("stock_code", stockCode)
-                   .eq("status", 1);
-        return getOne(queryWrapper);
+        queryWrapper.and(wrapper -> 
+            wrapper.eq("a_stock_code", stockCode)
+                   .or()
+                   .eq("h_stock_code", stockCode)
+        ).eq("status", 1)
+         .eq("deleted", 0);
+        
+        StockInfo result = getOne(queryWrapper);
+        if (result != null) {
+            log.debug("根据股票代码 {} 查询到股票信息: {}", stockCode, result.getStockName());
+        } else {
+            log.warn("未找到股票代码为 {} 的股票信息", stockCode);
+        }
+        return result;
+    }
+
+    @Override
+    public List<StockInfo> searchStockByName(String stockName) {
+        QueryWrapper<StockInfo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.like("stock_name", stockName)
+                   .eq("status", 1)
+                   .eq("deleted", 0)
+                   .orderByAsc("a_stock_code");
+        
+        List<StockInfo> results = list(queryWrapper);
+        log.debug("根据股票名称 '{}' 搜索到 {} 条记录", stockName, results.size());
+        return results;
     }
 }

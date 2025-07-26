@@ -1,0 +1,76 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------< com.stock:stock-premium-system >-------------------
+[INFO] Building 股票溢价率监控系统 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:2.7.14:run (default-cli) > test-compile @ stock-premium-system >>>
+[INFO] 
+[INFO] --- resources:3.2.0:resources (default-resources) @ stock-premium-system ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Using 'UTF-8' encoding to copy filtered properties files.
+[INFO] Copying 2 resources
+[INFO] Copying 1 resource
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ stock-premium-system ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 42 source files with javac [debug target 17] to target/classes
+[INFO] /Users/hejunyi/code/stock-app- backend-server/stock-premium-system/src/main/java/com/stock/premium/service/impl/TencentFinanceServiceImpl.java: /Users/hejunyi/code/stock-app- backend-server/stock-premium-system/src/main/java/com/stock/premium/service/impl/TencentFinanceServiceImpl.java使用或覆盖了已过时的 API。
+[INFO] /Users/hejunyi/code/stock-app- backend-server/stock-premium-system/src/main/java/com/stock/premium/service/impl/TencentFinanceServiceImpl.java: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+[INFO] 
+[INFO] --- resources:3.2.0:testResources (default-testResources) @ stock-premium-system ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Using 'UTF-8' encoding to copy filtered properties files.
+[INFO] skip non existing resourceDirectory /Users/hejunyi/code/stock-app- backend-server/stock-premium-system/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ stock-premium-system ---
+[INFO] Changes detected - recompiling the module! :dependency
+[INFO] Compiling 1 source file with javac [debug target 17] to target/test-classes
+[INFO] 
+[INFO] <<< spring-boot:2.7.14:run (default-cli) < test-compile @ stock-premium-system <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:2.7.14:run (default-cli) @ stock-premium-system ---
+[INFO] Attaching agents: []
+09:15:16.189 [main] ERROR org.springframework.boot.SpringApplication - Application run failed
+org.springframework.boot.context.config.InvalidConfigDataPropertyException: Property 'spring.profiles.active' imported from location 'class path resource [application-dev.yml]' is invalid in a profile specific resource [origin: class path resource [application-dev.yml] - 9:13]
+	at org.springframework.boot.context.config.InvalidConfigDataPropertyException.lambda$throwOrWarn$1(InvalidConfigDataPropertyException.java:125)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at java.base/java.util.Collections$UnmodifiableCollection.forEach(Collections.java:1092)
+	at org.springframework.boot.context.config.InvalidConfigDataPropertyException.throwOrWarn(InvalidConfigDataPropertyException.java:122)
+	at org.springframework.boot.context.config.ConfigDataEnvironment.checkForInvalidProperties(ConfigDataEnvironment.java:362)
+	at org.springframework.boot.context.config.ConfigDataEnvironment.applyToEnvironment(ConfigDataEnvironment.java:326)
+	at org.springframework.boot.context.config.ConfigDataEnvironment.processAndApply(ConfigDataEnvironment.java:233)
+	at org.springframework.boot.context.config.ConfigDataEnvironmentPostProcessor.postProcessEnvironment(ConfigDataEnvironmentPostProcessor.java:102)
+	at org.springframework.boot.context.config.ConfigDataEnvironmentPostProcessor.postProcessEnvironment(ConfigDataEnvironmentPostProcessor.java:94)
+	at org.springframework.boot.env.EnvironmentPostProcessorApplicationListener.onApplicationEnvironmentPreparedEvent(EnvironmentPostProcessorApplicationListener.java:102)
+	at org.springframework.boot.env.EnvironmentPostProcessorApplicationListener.onApplicationEvent(EnvironmentPostProcessorApplicationListener.java:87)
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.doInvokeListener(SimpleApplicationEventMulticaster.java:176)
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.invokeListener(SimpleApplicationEventMulticaster.java:169)
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.multicastEvent(SimpleApplicationEventMulticaster.java:143)
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.multicastEvent(SimpleApplicationEventMulticaster.java:131)
+	at org.springframework.boot.context.event.EventPublishingRunListener.environmentPrepared(EventPublishingRunListener.java:85)
+	at org.springframework.boot.SpringApplicationRunListeners.lambda$environmentPrepared$2(SpringApplicationRunListeners.java:66)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.springframework.boot.SpringApplicationRunListeners.doWithListeners(SpringApplicationRunListeners.java:120)
+	at org.springframework.boot.SpringApplicationRunListeners.doWithListeners(SpringApplicationRunListeners.java:114)
+	at org.springframework.boot.SpringApplicationRunListeners.environmentPrepared(SpringApplicationRunListeners.java:65)
+	at org.springframework.boot.SpringApplication.prepareEnvironment(SpringApplication.java:343)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:301)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1303)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1292)
+	at com.stock.premium.StockPremiumApplication.main(StockPremiumApplication.java:20)
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  3.240 s
+[INFO] Finished at: 2025-07-26T09:15:16+08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:2.7.14:run (default-cli) on project stock-premium-system: Application finished with exit code: 1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

@@ -1,0 +1,74 @@
+# 开发环境配置
+server:
+  port: 8080
+
+spring:
+  application:
+    name: stock-premium-system
+  profiles:
+    active: dev
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  
+  # MySQL数据库配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/stock_premium?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=true
+    username: root
+    password: 12345678
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      auto-commit: true
+      idle-timeout: 30000
+      pool-name: DatebookHikariCP
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+
+# MyBatis Plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  mapper-locations: classpath*:/mapper/**/*.xml
+
+# 日志配置
+logging:
+  level:
+    com.stock.premium: debug
+    com.stock.premium.mapper: debug
+    org.springframework.web: info
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n"
+
+# 定时任务配置
+schedule:
+  stock-data-collect:
+    enabled: true
+    cron: "0 */5 * * * ?" # 每5分钟执行一次
+  daily-stats:
+    enabled: true
+    cron: "0 0 18 * * ?" # 每天18点执行
+
+# 腾讯财经API配置
+tencent:
+  finance:
+    api:
+      base-url: https://qt.gtimg.cn/q=
+      timeout: 5000
+
+# Swagger配置
+swagger:
+  enabled: true
+  title: 股票溢价率监控系统API
+  description: 提供A+H股票溢价率监控相关接口
+  version: 1.0.0
+  base-package: com.stock.premium.controller

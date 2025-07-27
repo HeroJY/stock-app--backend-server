@@ -23,8 +23,5 @@ public interface StockInfoService extends IService<StockInfo> {
      */
     StockInfo getByStockCode(String stockCode);
     
-    /**
-     * 根据股票名称搜索股票信息
-     */
-    List<StockInfo> searchStockByName(String stockName);
+    
 }

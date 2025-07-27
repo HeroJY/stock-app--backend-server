@@ -56,20 +56,5 @@ public class StockController {
         }
     }
 
-    /**
-     * 根据股票名称搜索股票信息
-     */
-    @ApiOperation("根据股票名称搜索股票信息")
-    @GetMapping("/search")
-    public Result<List<StockInfo>> searchStockByName(
-            @ApiParam("股票名称") @RequestParam String stockName) {
-        try {
-            List<StockInfo> stocks = stockInfoService.searchStockByName(stockName);
-            return Result.success("搜索成功", stocks);
-        } catch (Exception e) {
-            log.error("搜索股票失败: {}", stockName, e);
-            return Result.error("搜索失败: " + e.getMessage());
-        }
-    }
 
 }

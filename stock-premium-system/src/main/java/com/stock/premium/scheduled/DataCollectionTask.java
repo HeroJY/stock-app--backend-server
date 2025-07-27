@@ -28,7 +28,7 @@ public class DataCollectionTask {
     public void collectStockData() {
         try {
             log.debug("开始执行定时数据采集任务");
-            dataCollectionService.collectDataIfTradingTime();
+            dataCollectionService.collectAllStockData();
         } catch (Exception e) {
             log.error("定时数据采集任务执行失败", e);
         }

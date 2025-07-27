@@ -1,9 +1,11 @@
 package com.stock.premium.controller;
 
+import com.stock.premium.service.DataCollectionService;
 import com.stock.premium.utils.Result;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -18,17 +20,23 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/data-collection")
 public class DataCollectionController {
 
+    @Autowired
+    private DataCollectionService dataCollectionService;
+
     @ApiOperation("手动触发股票数据采集")
     @PostMapping("/stock-data")
     public Result<String> collectStockData() {
         try {
             log.info("手动触发股票数据采集");
-            // TODO: 实现股票数据采集逻辑
-            return Result.success("数据采集任务已启动");
+            
+            // 调用数据采集服务进行股票数据采集
+            dataCollectionService.collectAllStockData();
+            
+            log.info("股票数据采集任务执行完成");
+            return Result.success("股票数据采集任务执行完成");
         } catch (Exception e) {
             log.error("股票数据采集失败", e);
             return Result.error("数据采集失败: " + e.getMessage());
         }
     }
-
 }

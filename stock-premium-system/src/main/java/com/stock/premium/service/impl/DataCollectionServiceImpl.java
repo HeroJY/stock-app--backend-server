@@ -6,11 +6,14 @@ import com.stock.premium.service.StockInfoService;
 import com.stock.premium.service.TencentFinanceService;
 import com.stock.premium.service.PremiumRateService;
 import com.stock.premium.service.ExchangeRateService;
+import com.stock.premium.service.StockPriceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -35,10 +38,19 @@ public class DataCollectionServiceImpl implements DataCollectionService {
     
     @Autowired
     private ExchangeRateService exchangeRateService;
+    
+    @Autowired
+    private StockPriceService stockPriceService;
 
     @Override
     public void collectAllStockData() {
         log.info("开始采集所有股票数据");
+        
+        // 检查是否为交易时间
+        // if (!isTradingTime()) {
+        //     log.info("当前不是交易时间，跳过数据采集");
+        //     return;
+        // }
         
         try {
             List<StockInfo> activeStocks = stockInfoService.getActiveStocks();
@@ -46,7 +58,7 @@ public class DataCollectionServiceImpl implements DataCollectionService {
             
             for (StockInfo stock : activeStocks) {
                 try {
-                    collectStockData(stock.getAStockCode());
+                    collectSingleStockData(stock.getAStockCode());
                 } catch (Exception e) {
                     log.error("采集股票 {} 数据时发生错误", stock.getAStockCode(), e);
                 }
@@ -58,8 +70,12 @@ public class DataCollectionServiceImpl implements DataCollectionService {
         }
     }
 
-    @Override
-    public void collectStockData(String aStockCode) {
+    /**
+     * 采集单个股票的数据（私有方法）
+     * 1. 采集股票价格信息并存储到stock_price_record表中
+     * 2. 计算HA溢价率并将信息存储到premium_rate_record表中
+     */
+    private void collectSingleStockData(String aStockCode) {
         log.debug("开始采集股票 {} 的数据", aStockCode);
         
         try {
@@ -76,23 +92,48 @@ public class DataCollectionServiceImpl implements DataCollectionService {
                 return;
             }
             
-            // 获取A股价格
+            LocalDateTime now = LocalDateTime.now();
+            LocalDate today = LocalDate.now();
+            
+            // 1. 获取并保存A股价格数据
             var aStockPriceRecord = tencentFinanceService.getStockPrice(aStockCode, "A");
             if (aStockPriceRecord == null || aStockPriceRecord.getCurrentPrice() == null) {
                 log.warn("无法获取A股 {} 的价格", aStockCode);
                 return;
             }
+            
+            // 设置A股价格记录的时间信息
+            aStockPriceRecord.setRecordTime(now);
+            aStockPriceRecord.setTradeDate(today);
+            
+            // 保存A股价格记录到数据库
+            boolean aSaved = stockPriceService.saveStockPriceRecord(aStockPriceRecord);
+            if (!aSaved) {
+                log.warn("保存A股 {} 价格记录失败", aStockCode);
+            }
+            
             BigDecimal aStockPrice = aStockPriceRecord.getCurrentPrice();
             
-            // 获取H股价格
+            // 2. 获取并保存H股价格数据
             var hStockPriceRecord = tencentFinanceService.getStockPrice(hStockCode, "H");
             if (hStockPriceRecord == null || hStockPriceRecord.getCurrentPrice() == null) {
                 log.warn("无法获取H股 {} 的价格", hStockCode);
                 return;
             }
+            
+            // 设置H股价格记录的时间信息
+            hStockPriceRecord.setRecordTime(now);
+            hStockPriceRecord.setTradeDate(today);
+            
+            // 保存H股价格记录到数据库
+            boolean hSaved = stockPriceService.saveStockPriceRecord(hStockPriceRecord);
+            if (!hSaved) {
+                log.warn("保存H股 {} 价格记录失败", hStockCode);
+            }
+            
             BigDecimal hStockPrice = hStockPriceRecord.getCurrentPrice();
             
-            // 获取汇率 (港币对人民币)
+            // 3. 获取汇率 (港币对人民币)
             var exchangeRateVO = exchangeRateService.getLatestRate("HKDCNY");
             if (exchangeRateVO == null || exchangeRateVO.getRate() == null) {
                 log.warn("无法获取最新汇率");
@@ -100,26 +141,17 @@ public class DataCollectionServiceImpl implements DataCollectionService {
             }
             BigDecimal exchangeRate = exchangeRateVO.getRate();
             
-            // 记录溢价率数据
+            // 4. 计算并记录溢价率数据到premium_rate_record表
             premiumRateService.recordPremiumRate(aStockCode, aStockPrice, hStockPrice, exchangeRate);
             
-            log.debug("成功采集股票 {} 的数据", aStockCode);
+            log.debug("成功采集并保存股票 {} 的数据 - A股价格: {}, H股价格: {}, 汇率: {}", 
+                     aStockCode, aStockPrice, hStockPrice, exchangeRate);
             
         } catch (Exception e) {
             log.error("采集股票 {} 数据时发生错误", aStockCode, e);
         }
     }
 
-    @Override
-    public void collectDataIfTradingTime() {
-        if (isTradingTime()) {
-            log.info("当前为交易时间，开始采集数据");
-            collectAllStockData();
-        } else {
-            log.debug("当前非交易时间，跳过数据采集");
-        }
-    }
-    
     /**
      * 判断当前是否为交易时间
      * A股交易时间：9:30-11:30, 13:00-15:00

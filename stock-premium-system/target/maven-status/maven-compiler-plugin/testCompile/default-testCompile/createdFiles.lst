@@ -2,6 +2,8 @@ com/stock/premium/service/ExchangeRateServiceTest.class
 com/stock/premium/service/ExchangeRatePersistenceTest.class
 com/stock/premium/controller/ExchangeRateControllerTest.class
 com/stock/premium/service/ExchangeRateUpdateTest.class
+com/stock/premium/service/impl/DataCollectionServiceImplIntegrationTest.class
 com/stock/premium/service/StockInfoServiceTest.class
 com/stock/premium/SimpleTest.class
+com/stock/premium/service/impl/DataCollectionServiceImplTest.class
 com/stock/premium/service/StockInfoQueryTest.class

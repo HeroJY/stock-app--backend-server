@@ -3,7 +3,7 @@ package com.stock.premium.controller;
 import com.stock.premium.common.Result;
 import com.stock.premium.dto.ExchangeRateQueryDTO;
 import com.stock.premium.service.ExchangeRateService;
-import com.stock.premium.vo.ExchangeRateVO;
+import com.stock.premium.vo.ExchangeRateSimpleVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -32,9 +32,9 @@ public class ExchangeRateController {
 
     @ApiOperation("获取最新汇率")
     @GetMapping("/latest")
-    public Result<ExchangeRateVO> getLatestRate(
+    public Result<ExchangeRateSimpleVO> getLatestRate(
             @ApiParam("货币对，默认HKDCNY") @RequestParam(defaultValue = "HKDCNY") String currencyPair) {
-        ExchangeRateVO latestRate = exchangeRateService.getLatestRate(currencyPair);
+        ExchangeRateSimpleVO latestRate = exchangeRateService.getLatestRate(currencyPair);
         return Result.success(latestRate);
     }
 
@@ -49,14 +49,14 @@ public class ExchangeRateController {
 
     @ApiOperation("查询历史汇率")
     @GetMapping("/history")
-    public Result<List<ExchangeRateVO>> getHistoryRates(@Valid ExchangeRateQueryDTO queryDTO) {
-        List<ExchangeRateVO> historyRates = exchangeRateService.getHistoryRates(queryDTO);
+    public Result<List<ExchangeRateSimpleVO>> getHistoryRates(@Valid ExchangeRateQueryDTO queryDTO) {
+        List<ExchangeRateSimpleVO> historyRates = exchangeRateService.getHistoryRates(queryDTO);
         return Result.success(historyRates);
     }
 
     @ApiOperation("按日期范围查询汇率")
     @GetMapping("/range")
-    public Result<List<ExchangeRateVO>> getRatesByDateRange(
+    public Result<List<ExchangeRateSimpleVO>> getRatesByDateRange(
             @ApiParam("货币对") @RequestParam(defaultValue = "HKDCNY") String currencyPair,
             @ApiParam("开始日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
             @ApiParam("结束日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
@@ -67,20 +67,20 @@ public class ExchangeRateController {
         if (endDate == null) {
             endDate = LocalDate.now();
         }
-        List<ExchangeRateVO> rates = exchangeRateService.getRatesByDateRange(currencyPair, startDate, endDate);
+        List<ExchangeRateSimpleVO> rates = exchangeRateService.getRatesByDateRange(currencyPair, startDate, endDate);
         return Result.success(rates);
     }
 
     @ApiOperation("获取汇率统计信息")
     @GetMapping("/stats")
-    public Result<ExchangeRateVO> getRateStats(
+    public Result<ExchangeRateSimpleVO> getRateStats(
             @ApiParam("货币对") @RequestParam(defaultValue = "HKDCNY") String currencyPair,
             @ApiParam("统计日期") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate tradeDate) {
         // 如果没有提供日期，使用今天
         if (tradeDate == null) {
             tradeDate = LocalDate.now();
         }
-        ExchangeRateVO stats = exchangeRateService.getRateStats(currencyPair, tradeDate);
+        ExchangeRateSimpleVO stats = exchangeRateService.getRateStats(currencyPair, tradeDate);
         return Result.success(stats);
     }
 
@@ -91,13 +91,5 @@ public class ExchangeRateController {
             @ApiParam("货币对") @RequestParam(defaultValue = "HKDCNY") String currencyPair) {
         exchangeRateService.deleteByDate(currencyPair, tradeDate);
         return Result.success();
-    }
-
-    @ApiOperation("强制刷新汇率数据")
-    @PostMapping("/refresh")
-    public Result<ExchangeRateVO> refreshRate(
-            @ApiParam("货币对") @RequestParam(defaultValue = "HKDCNY") String currencyPair) {
-        ExchangeRateVO refreshedRate = exchangeRateService.refreshRate(currencyPair);
-        return Result.success(refreshedRate);
     }
 }

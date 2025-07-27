@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.stock.premium.dto.ExchangeRateQueryDTO;
 import com.stock.premium.entity.ExchangeRateRecord;
 import com.stock.premium.mapper.ExchangeRateRecordMapper;
-import com.stock.premium.vo.ExchangeRateVO;
+import com.stock.premium.vo.ExchangeRateSimpleVO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +13,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -77,36 +75,6 @@ class ExchangeRateServiceTest {
     }
 
     @Test
-    void testBatchImport_批量导入汇率() {
-        System.out.println("🎯 测试批量导入汇率");
-        
-        // Given
-        List<ExchangeRateRecord> records = new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
-            ExchangeRateRecord record = new ExchangeRateRecord();
-            record.setCurrencyPair("HKDCNY");
-            record.setRate(new BigDecimal("0.91" + i));
-            record.setRecordTime(LocalDateTime.now().minusHours(i));
-            record.setTradeDate(LocalDate.now());
-            record.setDataSource("manual");
-            records.add(record);
-        }
-        
-        // When
-        exchangeRateService.batchImport(records);
-        
-        // Then - 验证数据库中的记录
-        QueryWrapper<ExchangeRateRecord> wrapper = new QueryWrapper<>();
-        wrapper.eq("data_source", "manual");
-        List<ExchangeRateRecord> savedRecords = exchangeRateRecordMapper.selectList(wrapper);
-        
-        assertEquals(3, savedRecords.size(), "应该保存3条记录");
-        
-        System.out.println("✅ 批量导入汇率测试通过");
-        System.out.println("   导入记录数: " + savedRecords.size());
-    }
-
-    @Test
     void testGetLatestRate_获取最新汇率() {
         System.out.println("🎯 测试获取最新汇率");
         
@@ -129,7 +97,7 @@ class ExchangeRateServiceTest {
         exchangeRateService.updateRate(currencyPair, newRate);
         
         // When
-        ExchangeRateVO latestRate = exchangeRateService.getLatestRate(currencyPair);
+        ExchangeRateSimpleVO latestRate = exchangeRateService.getLatestRate(currencyPair);
         
         // Then
         assertNotNull(latestRate, "应该获取到最新汇率");
@@ -164,7 +132,7 @@ class ExchangeRateServiceTest {
         queryDTO.setPageSize(10);
         queryDTO.setPageNum(1);
         
-        List<ExchangeRateVO> historyRates = exchangeRateService.getHistoryRates(queryDTO);
+        List<ExchangeRateSimpleVO> historyRates = exchangeRateService.getHistoryRates(queryDTO);
         
         // Then
         assertNotNull(historyRates, "历史汇率不应为空");
@@ -186,7 +154,7 @@ class ExchangeRateServiceTest {
         exchangeRateService.updateRate(currencyPair, new BigDecimal("0.912"));
         
         // When
-        List<ExchangeRateVO> rates = exchangeRateService.getRatesByDateRange(
+        List<ExchangeRateSimpleVO> rates = exchangeRateService.getRatesByDateRange(
             currencyPair, today, today);
         
         // Then
@@ -280,7 +248,7 @@ class ExchangeRateServiceTest {
         }
         
         // When
-        ExchangeRateVO stats = exchangeRateService.getRateStats(currencyPair, today);
+        ExchangeRateSimpleVO stats = exchangeRateService.getRateStats(currencyPair, today);
         
         // Then
         assertNotNull(stats, "统计结果不应为空");
@@ -289,29 +257,5 @@ class ExchangeRateServiceTest {
         System.out.println("✅ 获取汇率统计测试通过");
         System.out.println("   统计日期: " + today);
         System.out.println("   货币对: " + stats.getCurrencyPair());
-    }
-
-    @Test
-    void testRefreshRate_强制刷新汇率() {
-        System.out.println("🎯 测试强制刷新汇率");
-        
-        // Given
-        String currencyPair = "HKDCNY";
-        
-        // When - 尝试刷新汇率（可能会失败，因为没有外部API）
-        try {
-            ExchangeRateVO refreshedRate = exchangeRateService.refreshRate(currencyPair);
-            
-            // Then - 如果成功刷新
-            if (refreshedRate != null) {
-                assertNotNull(refreshedRate.getRate(), "刷新的汇率不应为空");
-                System.out.println("✅ 强制刷新汇率成功");
-                System.out.println("   刷新后汇率: " + refreshedRate.getRate());
-            }
-        } catch (Exception e) {
-            // 如果刷新失败（比如网络问题），这是正常的
-            System.out.println("⚠️  强制刷新汇率失败（可能是网络问题）: " + e.getMessage());
-            assertTrue(true, "刷新失败是可接受的");
-        }
     }
 }

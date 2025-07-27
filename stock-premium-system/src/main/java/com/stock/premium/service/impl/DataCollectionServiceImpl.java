@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 
 /**
@@ -45,12 +44,6 @@ public class DataCollectionServiceImpl implements DataCollectionService {
     @Override
     public void collectAllStockData() {
         log.info("开始采集所有股票数据");
-        
-        // 检查是否为交易时间
-        // if (!isTradingTime()) {
-        //     log.info("当前不是交易时间，跳过数据采集");
-        //     return;
-        // }
         
         try {
             List<StockInfo> activeStocks = stockInfoService.getActiveStocks();
@@ -152,22 +145,4 @@ public class DataCollectionServiceImpl implements DataCollectionService {
         }
     }
 
-    /**
-     * 判断当前是否为交易时间
-     * A股交易时间：9:30-11:30, 13:00-15:00
-     * H股交易时间：9:30-12:00, 13:00-16:00
-     */
-    private boolean isTradingTime() {
-        LocalTime now = LocalTime.now();
-        
-        // 上午交易时间：9:30-11:30
-        boolean morningTrading = now.isAfter(LocalTime.of(9, 30)) && 
-                                now.isBefore(LocalTime.of(11, 30));
-        
-        // 下午交易时间：13:00-15:00
-        boolean afternoonTrading = now.isAfter(LocalTime.of(13, 0)) && 
-                                  now.isBefore(LocalTime.of(15, 0));
-        
-        return morningTrading || afternoonTrading;
-    }
 }

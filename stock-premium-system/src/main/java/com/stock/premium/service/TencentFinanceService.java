@@ -2,7 +2,6 @@ package com.stock.premium.service;
 
 import com.stock.premium.entity.StockPriceRecord;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -28,12 +27,6 @@ public interface TencentFinanceService {
      */
     List<StockPriceRecord> getBatchStockPrices(List<String> stockCodes);
 
-    /**
-     * 获取汇率信息
-     * @param currencyPair 货币对，如HKDCNY
-     * @return 汇率
-     */
-    BigDecimal getExchangeRate(String currencyPair);
 
     /**
      * 检查市场是否开市

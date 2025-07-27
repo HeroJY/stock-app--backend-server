@@ -5,8 +5,7 @@ import com.stock.premium.dto.ExchangeRateQueryDTO;
 import com.stock.premium.entity.ExchangeRateRecord;
 import com.stock.premium.mapper.ExchangeRateRecordMapper;
 import com.stock.premium.service.ExchangeRateService;
-import com.stock.premium.service.TencentFinanceService;
-import com.stock.premium.vo.ExchangeRateVO;
+import com.stock.premium.vo.ExchangeRateSimpleVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -31,16 +30,15 @@ import java.util.stream.Collectors;
 public class ExchangeRateServiceImpl implements ExchangeRateService {
 
     private final ExchangeRateRecordMapper exchangeRateRecordMapper;
-    private final TencentFinanceService tencentFinanceService;
 
     @Override
-    public ExchangeRateVO getLatestRate(String currencyPair) {
+    public ExchangeRateSimpleVO getLatestRate(String currencyPair) {
         ExchangeRateRecord record = exchangeRateRecordMapper.selectLatest();
         if (record == null) {
-            // 如果没有记录，尝试从外部API获取
-            return refreshRate(currencyPair);
+            // 如果没有记录，抛出异常提示需要手动输入汇率信息
+            throw new RuntimeException("暂无汇率数据，请先手动输入汇率信息");
         }
-        return convertToVO(record);
+        return convertToSimpleVO(record);
     }
 
     @Override
@@ -52,31 +50,15 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
         record.setRecordTime(LocalDateTime.now());
         record.setTradeDate(LocalDate.now());
         record.setDataSource("manual");
+        record.setCreatedTime(LocalDateTime.now());  // 设置创建时间戳
         
         exchangeRateRecordMapper.insert(record);
         log.info("手动更新汇率: {} = {}", currencyPair, rate);
     }
 
-    @Override
-    @Transactional
-    public void batchImport(List<ExchangeRateRecord> records) {
-        for (ExchangeRateRecord record : records) {
-            if (record.getRecordTime() == null) {
-                record.setRecordTime(LocalDateTime.now());
-            }
-            if (record.getTradeDate() == null) {
-                record.setTradeDate(LocalDate.now());
-            }
-            if (record.getDataSource() == null) {
-                record.setDataSource("import");
-            }
-            exchangeRateRecordMapper.insert(record);
-        }
-        log.info("批量导入汇率数据: {} 条", records.size());
-    }
 
     @Override
-    public List<ExchangeRateVO> getHistoryRates(ExchangeRateQueryDTO queryDTO) {
+    public List<ExchangeRateSimpleVO> getHistoryRates(ExchangeRateQueryDTO queryDTO) {
         QueryWrapper<ExchangeRateRecord> wrapper = new QueryWrapper<>();
         wrapper.eq("currency_pair", queryDTO.getCurrencyPair());
         
@@ -92,11 +74,14 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
                     (queryDTO.getPageNum() - 1) * queryDTO.getPageSize());
         
         List<ExchangeRateRecord> records = exchangeRateRecordMapper.selectList(wrapper);
-        return records.stream().map(this::convertToVO).collect(Collectors.toList());
+        if (records.isEmpty()) {
+            throw new RuntimeException("没查询到汇率设置，请手动设置汇率信息");
+        }
+        return records.stream().map(this::convertToSimpleVO).collect(Collectors.toList());
     }
 
     @Override
-    public List<ExchangeRateVO> getRatesByDateRange(String currencyPair, LocalDate startDate, LocalDate endDate) {
+    public List<ExchangeRateSimpleVO> getRatesByDateRange(String currencyPair, LocalDate startDate, LocalDate endDate) {
         QueryWrapper<ExchangeRateRecord> wrapper = new QueryWrapper<>();
         wrapper.eq("currency_pair", currencyPair)
                .ge("trade_date", startDate)
@@ -104,11 +89,14 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
                .orderByAsc("record_time");
         
         List<ExchangeRateRecord> records = exchangeRateRecordMapper.selectList(wrapper);
-        return records.stream().map(this::convertToVO).collect(Collectors.toList());
+        if (records.isEmpty()) {
+            throw new RuntimeException("没查询到汇率设置，请手动设置汇率信息");
+        }
+        return records.stream().map(this::convertToSimpleVO).collect(Collectors.toList());
     }
 
     @Override
-    public ExchangeRateVO getRateStats(String currencyPair, LocalDate tradeDate) {
+    public ExchangeRateSimpleVO getRateStats(String currencyPair, LocalDate tradeDate) {
         QueryWrapper<ExchangeRateRecord> wrapper = new QueryWrapper<>();
         wrapper.eq("currency_pair", currencyPair)
                .eq("trade_date", tradeDate)
@@ -116,36 +104,12 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
         
         List<ExchangeRateRecord> records = exchangeRateRecordMapper.selectList(wrapper);
         if (records.isEmpty()) {
-            return null;
+            throw new RuntimeException("没查询到汇率设置，请手动设置汇率信息");
         }
         
-        ExchangeRateVO stats = new ExchangeRateVO();
-        stats.setCurrencyPair(currencyPair);
-        stats.setTradeDate(tradeDate);
-        
-        // 计算统计数据
-        BigDecimal maxRate = records.stream()
-                .map(ExchangeRateRecord::getRate)
-                .max(BigDecimal::compareTo)
-                .orElse(BigDecimal.ZERO);
-        
-        BigDecimal minRate = records.stream()
-                .map(ExchangeRateRecord::getRate)
-                .min(BigDecimal::compareTo)
-                .orElse(BigDecimal.ZERO);
-        
-        BigDecimal avgRate = records.stream()
-                .map(ExchangeRateRecord::getRate)
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
-                .divide(BigDecimal.valueOf(records.size()), 6, java.math.RoundingMode.HALF_UP);
-        
-        stats.setMaxRate(maxRate);
-        stats.setMinRate(minRate);
-        stats.setAvgRate(avgRate);
-        stats.setOpenRate(records.get(0).getRate());
-        stats.setCloseRate(records.get(records.size() - 1).getRate());
-        
-        return stats;
+        // 对于统计信息，返回最新的一条记录作为代表
+        ExchangeRateRecord latestRecord = records.get(records.size() - 1);
+        return convertToSimpleVO(latestRecord);
     }
 
     @Override
@@ -159,34 +123,11 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
         log.info("删除汇率记录: {} 条, 货币对: {}, 日期: {}", deleted, currencyPair, tradeDate);
     }
 
-    @Override
-    @Transactional
-    public ExchangeRateVO refreshRate(String currencyPair) {
-        try {
-            BigDecimal rate = tencentFinanceService.getExchangeRate(currencyPair);
-            
-            ExchangeRateRecord record = new ExchangeRateRecord();
-            record.setCurrencyPair(currencyPair);
-            record.setRate(rate);
-            record.setRecordTime(LocalDateTime.now());
-            record.setTradeDate(LocalDate.now());
-            record.setDataSource("tencent");
-            
-            exchangeRateRecordMapper.insert(record);
-            log.info("刷新汇率成功: {} = {}", currencyPair, rate);
-            
-            return convertToVO(record);
-        } catch (Exception e) {
-            log.error("刷新汇率失败: {}", e.getMessage(), e);
-            throw new RuntimeException("刷新汇率失败: " + e.getMessage());
-        }
-    }
-
     /**
-     * 转换为VO对象
+     * 转换为简单VO对象（只包含汇率信息）
      */
-    private ExchangeRateVO convertToVO(ExchangeRateRecord record) {
-        ExchangeRateVO vo = new ExchangeRateVO();
+    private ExchangeRateSimpleVO convertToSimpleVO(ExchangeRateRecord record) {
+        ExchangeRateSimpleVO vo = new ExchangeRateSimpleVO();
         BeanUtils.copyProperties(record, vo);
         return vo;
     }

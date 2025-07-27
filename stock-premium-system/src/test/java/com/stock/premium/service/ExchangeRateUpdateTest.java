@@ -2,7 +2,7 @@ package com.stock.premium.service;
 
 import com.stock.premium.entity.ExchangeRateRecord;
 import com.stock.premium.mapper.ExchangeRateRecordMapper;
-import com.stock.premium.vo.ExchangeRateVO;
+import com.stock.premium.vo.ExchangeRateSimpleVO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -136,7 +136,7 @@ class ExchangeRateUpdateTest {
 
         // When - 先设置汇率，再获取最新汇率
         exchangeRateService.updateRate(currencyPair, setRate);
-        ExchangeRateVO latestRate = exchangeRateService.getLatestRate(currencyPair);
+        ExchangeRateSimpleVO latestRate = exchangeRateService.getLatestRate(currencyPair);
 
         // Then - 验证获取的汇率正确
         assertNotNull(latestRate, "应该能获取到最新汇率");
@@ -252,7 +252,7 @@ class ExchangeRateUpdateTest {
         }
         exchangeRateService.updateRate(currencyPair, newRate);
         
-        ExchangeRateVO latestRate = exchangeRateService.getLatestRate(currencyPair);
+        ExchangeRateSimpleVO latestRate = exchangeRateService.getLatestRate(currencyPair);
 
         // Then
         assertNotNull(latestRate, "应该能获取到最新汇率");

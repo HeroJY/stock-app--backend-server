@@ -99,38 +99,9 @@ public class TencentFinanceServiceImpl implements TencentFinanceService {
     }
 
     @Override
-    public BigDecimal getExchangeRate(String currencyPair) {
-        try {
-            // 腾讯财经汇率API格式: r_hkdcny (港币对人民币)
-            String code = "r_" + currencyPair.toLowerCase();
-            String url = baseUrl + code;
-            
-            log.debug("请求汇率API: {}", url);
-            String response = HttpUtil.get(url, timeout);
-            
-            if (StrUtil.isBlank(response)) {
-                log.warn("获取汇率失败，使用默认汇率: {}", currencyPair);
-                return new BigDecimal("0.9"); // 默认汇率
-            }
-
-            return parseExchangeRate(response);
-        } catch (Exception e) {
-            log.error("获取汇率失败: {}", currencyPair, e);
-            return new BigDecimal("0.9"); // 默认汇率
-        }
-    }
-
-    @Override
     public boolean isMarketOpen(String marketType) {
         LocalTime now = LocalTime.now();
-        LocalDate today = LocalDate.now();
         
-        // 检查是否为工作日
-        int dayOfWeek = today.getDayOfWeek().getValue();
-        if (dayOfWeek > 5) { // 周六日
-            return false;
-        }
-
         if ("A".equals(marketType)) {
             // A股交易时间: 9:30-11:30, 13:00-15:00
             return (now.isAfter(LocalTime.of(9, 30)) && now.isBefore(LocalTime.of(11, 30))) ||
@@ -226,22 +197,4 @@ public class TencentFinanceServiceImpl implements TencentFinanceService {
         }
     }
 
-    /**
-     * 解析汇率数据
-     */
-    private BigDecimal parseExchangeRate(String data) {
-        try {
-            // 汇率数据格式: r_hkdcny="0.9123"
-            String[] parts = data.split("=");
-            if (parts.length < 2) {
-                return new BigDecimal("0.9");
-            }
-
-            String rateStr = parts[1].replace("\"", "").replace(";", "");
-            return new BigDecimal(rateStr);
-        } catch (Exception e) {
-            log.error("解析汇率数据失败: {}", data, e);
-            return new BigDecimal("0.9");
-        }
-    }
 }

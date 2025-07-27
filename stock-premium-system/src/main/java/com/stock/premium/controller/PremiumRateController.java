@@ -60,22 +60,21 @@ public class PremiumRateController {
     @ApiOperation("查询溢价率历史数据（分页）")
     @GetMapping("/history")
     public Result<List<PremiumRateRecord>> getPremiumRateHistory(
-            @ApiParam("股票代码，不传则查询所有") @RequestParam(required = false) String stockCode,
+            @ApiParam(value = "股票代码", required = true) @RequestParam String stockCode,
             @ApiParam("开始日期") @RequestParam(required = false) String startDate,
             @ApiParam("结束日期") @RequestParam(required = false) String endDate,
             @ApiParam("页码，从1开始") @RequestParam(defaultValue = "1") Integer page,
             @ApiParam("每页大小") @RequestParam(defaultValue = "20") Integer size) {
         try {
+            // 验证股票代码不能为空
+            if (stockCode == null || stockCode.trim().isEmpty()) {
+                return Result.error("股票代码不能为空");
+            }
+            
             // 这里可以根据需要实现分页查询逻辑
             // 暂时返回今日数据
             LocalDate date = LocalDate.now();
-            List<PremiumRateRecord> records;
-            
-            if (stockCode != null) {
-                records = premiumRateService.getPremiumRatesByStockAndDate(stockCode, date);
-            } else {
-                records = premiumRateService.getLatestPremiumRatesByDate(date);
-            }
+            List<PremiumRateRecord> records = premiumRateService.getPremiumRatesByStockAndDate(stockCode, date);
             
             return Result.success("查询成功", records);
         } catch (Exception e) {

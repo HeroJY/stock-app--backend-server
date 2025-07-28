@@ -2,6 +2,7 @@ package com.stock.premium.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.stock.premium.entity.StockInfo;
+import com.stock.premium.vo.StockDetailVO;
 
 import java.util.List;
 
@@ -23,5 +24,10 @@ public interface StockInfoService extends IService<StockInfo> {
      */
     StockInfo getByStockCode(String stockCode);
     
-    
+    /**
+     * 根据股票代码获取股票详细信息
+     * @param stockCode 股票代码
+     * @return 股票详细信息
+     */
+    StockDetailVO getStockDetail(String stockCode);
 }

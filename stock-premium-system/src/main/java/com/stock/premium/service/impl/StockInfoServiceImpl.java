@@ -2,14 +2,21 @@ package com.stock.premium.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.stock.premium.entity.PremiumRateRecord;
 import com.stock.premium.entity.StockInfo;
+import com.stock.premium.entity.StockPriceRecord;
 import com.stock.premium.mapper.StockInfoMapper;
+import com.stock.premium.service.PremiumRateService;
 import com.stock.premium.service.StockInfoService;
+import com.stock.premium.service.StockPriceService;
 import com.stock.premium.utils.TencentFinanceApiUtil;
+import com.stock.premium.vo.StockDetailVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +33,12 @@ public class StockInfoServiceImpl extends ServiceImpl<StockInfoMapper, StockInfo
 
     @Autowired
     private TencentFinanceApiUtil tencentFinanceApiUtil;
+    
+    @Autowired
+    private StockPriceService stockPriceService;
+    
+    @Autowired
+    private PremiumRateService premiumRateService;
 
 
     @Override
@@ -125,5 +138,83 @@ public class StockInfoServiceImpl extends ServiceImpl<StockInfoMapper, StockInfo
         }
     }
 
+    @Override
+    public StockDetailVO getStockDetail(String stockCode) {
+        try {
+            // 1. 获取股票基本信息
+            StockInfo stockInfo = getByStockCode(stockCode);
+            if (stockInfo == null) {
+                log.warn("未找到股票代码 {} 的基本信息", stockCode);
+                return null;
+            }
 
+            StockDetailVO stockDetail = new StockDetailVO();
+            stockDetail.setStockCode(stockCode);
+            stockDetail.setStockName(stockInfo.getStockName());
+            stockDetail.setAStockCode(stockInfo.getAStockCode());
+            stockDetail.setHStockCode(stockInfo.getHStockCode());
+
+            // 2. 获取最新的A股和H股价格
+            LocalDate today = LocalDate.now();
+            
+            // 获取A股价格
+            if (stockInfo.getAStockCode() != null && !stockInfo.getAStockCode().isEmpty()) {
+                List<StockPriceRecord> aStockPrices = stockPriceService.getByStockCodeAndDate(stockInfo.getAStockCode(), today);
+                if (aStockPrices != null && !aStockPrices.isEmpty()) {
+                    // 获取最新的价格记录
+                    StockPriceRecord latestAPrice = aStockPrices.stream()
+                            .filter(record -> "A股".equals(record.getMarketType()))
+                            .max((r1, r2) -> r1.getRecordTime().compareTo(r2.getRecordTime()))
+                            .orElse(null);
+                    if (latestAPrice != null) {
+                        stockDetail.setAStockPrice(latestAPrice.getCurrentPrice());
+                    }
+                }
+            }
+
+            // 获取H股价格
+            if (stockInfo.getHStockCode() != null && !stockInfo.getHStockCode().isEmpty()) {
+                List<StockPriceRecord> hStockPrices = stockPriceService.getByStockCodeAndDate(stockInfo.getHStockCode(), today);
+                if (hStockPrices != null && !hStockPrices.isEmpty()) {
+                    // 获取最新的价格记录
+                    StockPriceRecord latestHPrice = hStockPrices.stream()
+                            .filter(record -> "H股".equals(record.getMarketType()))
+                            .max((r1, r2) -> r1.getRecordTime().compareTo(r2.getRecordTime()))
+                            .orElse(null);
+                    if (latestHPrice != null) {
+                        stockDetail.setHStockPrice(latestHPrice.getCurrentPrice());
+                    }
+                }
+            }
+
+            // 3. 获取最新的溢价率
+            String queryStockCode = stockInfo.getAStockCode() != null ? stockInfo.getAStockCode() : stockCode;
+            List<PremiumRateRecord> premiumRates = premiumRateService.getPremiumRatesByStockAndDate(queryStockCode, today);
+            if (premiumRates != null && !premiumRates.isEmpty()) {
+                // 获取最新的溢价率记录
+                PremiumRateRecord latestPremiumRate = premiumRates.stream()
+                        .max((r1, r2) -> r1.getRecordTime().compareTo(r2.getRecordTime()))
+                        .orElse(null);
+                if (latestPremiumRate != null) {
+                    stockDetail.setPremiumRate(latestPremiumRate.getPremiumRate());
+                    stockDetail.setExchangeRate(latestPremiumRate.getExchangeRate());
+                    
+                    // 如果价格信息缺失，从溢价率记录中补充
+                    if (stockDetail.getAStockPrice() == null) {
+                        stockDetail.setAStockPrice(latestPremiumRate.getAStockPrice());
+                    }
+                    if (stockDetail.getHStockPrice() == null) {
+                        stockDetail.setHStockPrice(latestPremiumRate.getHStockPrice());
+                    }
+                }
+            }
+
+            log.debug("获取股票详细信息成功: {}", stockDetail.getStockName());
+            return stockDetail;
+
+        } catch (Exception e) {
+            log.error("获取股票详细信息失败: stockCode={}", stockCode, e);
+            return null;
+        }
+    }
 }

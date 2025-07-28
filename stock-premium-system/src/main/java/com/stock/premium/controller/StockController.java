@@ -3,6 +3,7 @@ package com.stock.premium.controller;
 import com.stock.premium.entity.StockInfo;
 import com.stock.premium.service.StockInfoService;
 import com.stock.premium.utils.Result;
+import com.stock.premium.vo.StockDetailVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -56,5 +57,22 @@ public class StockController {
         }
     }
 
-
+    @ApiOperation(value = "根据股票代码获取股票详细信息", 
+                  notes = "获取股票的中文名称、最新A股价格、H股价格以及溢价率等详细信息")
+    @GetMapping("/{stockCode}/detail")
+    public Result<StockDetailVO> getStockDetail(
+            @ApiParam(value = "股票代码", example = "600036", required = true) 
+            @PathVariable String stockCode) {
+        try {
+            StockDetailVO stockDetail = stockInfoService.getStockDetail(stockCode);
+            if (stockDetail != null) {
+                return Result.success("查询成功", stockDetail);
+            } else {
+                return Result.notFound("未找到股票详细信息");
+            }
+        } catch (Exception e) {
+            log.error("查询股票详细信息失败: stockCode={}", stockCode, e);
+            return Result.error("查询失败: " + e.getMessage());
+        }
+    }
 }

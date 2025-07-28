@@ -22,34 +22,34 @@ public class DataCollectionTask {
     private DataCollectionService dataCollectionService;
 
     /**
-     * 上午交易时间数据采集：9:30-12:00，每30秒执行一次
-     * 工作日上午9:30:00, 9:30:30, 9:31:00... 直到12:00:00
+     * 上午交易时间数据采集：9:30-12:00，每5分钟执行一次
+     * 工作日上午9:30:00, 9:35:00, 9:40:00... 直到12:00:00
      */
-    @Scheduled(cron = "0/30 30-59 9 * * MON-FRI")
+    @Scheduled(cron = "0 30-59/5 9 * * MON-FRI")
     public void collectStockDataMorning1() {
         executeDataCollection();
     }
     
-    @Scheduled(cron = "0/30 * 10-11 * * MON-FRI")
+    @Scheduled(cron = "0 */5 10-11 * * MON-FRI")
     public void collectStockDataMorning2() {
         executeDataCollection();
     }
     
-    @Scheduled(cron = "0/30 0 12 * * MON-FRI")
+    @Scheduled(cron = "0 0 12 * * MON-FRI")
     public void collectStockDataMorning3() {
         executeDataCollection();
     }
 
     /**
-     * 下午交易时间数据采集：13:00-16:30，每30秒执行一次
-     * 工作日下午1:00:00, 1:00:30, 1:01:00... 直到4:30:00
+     * 下午交易时间数据采集：13:00-16:30，每5分钟执行一次
+     * 工作日下午1:00:00, 1:05:00, 1:10:00... 直到4:30:00
      */
-    @Scheduled(cron = "0/30 * 13-15 * * MON-FRI")
+    @Scheduled(cron = "0 */5 13-15 * * MON-FRI")
     public void collectStockDataAfternoon1() {
         executeDataCollection();
     }
     
-    @Scheduled(cron = "0/30 0-30 16 * * MON-FRI")
+    @Scheduled(cron = "0 0-30/5 16 * * MON-FRI")
     public void collectStockDataAfternoon2() {
         executeDataCollection();
     }
